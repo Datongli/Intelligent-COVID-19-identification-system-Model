@@ -28,11 +28,13 @@ from sklearn.model_selection import KFold
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision.datasets import ImageFolder
+
 # from pytorchtools import EarlyStopping
 import GhostNet
 import efficientnet
 import GhostNet_res
 import Covnet
+import Covnet_3
 import ResNet
 
 # 从自定义的ResNet.py文件中导入resnet50这个函数
@@ -343,8 +345,9 @@ for train_val_both, test_index in kf.split(data_0):
     """
     # 1000分类层
     # net = ResNet.resnet18(num_classes=1000, include_top=True)
-    net = ResNet.resnet34(num_classes=2, include_top=True)
+    # net = ResNet.resnet34(num_classes=2, include_top=True)
     # net = Covnet.Covnet(drop_1=dropout_num_1, drop_2=dropout_num_2)
+    net = Covnet_3.Covnet(drop_1=dropout_num_1, drop_2=dropout_num_2)
     # net = GhostNet.ghostnet()
     # net = efficientnet.efficientnet_b0(num_classes=2)
     # net = GhostNet_res.resnet18()
@@ -552,10 +555,11 @@ for train_val_both, test_index in kf.split(data_0):
     weightpath = savename
     # 初始化网络
     # net = ResNet.resnet18(num_classes=1000, include_top=True)
-    net = ResNet.resnet34(num_classes=2, include_top=True)
+    # net = ResNet.resnet34(num_classes=2, include_top=True)
     # net = GhostNet.ghostnet()
     # net = efficientnet.efficientnet_b0(num_classes=2)
     # net = Covnet.Covnet(drop_1=dropout_num_1, drop_2=dropout_num_2)
+    net = Covnet_3.Covnet(drop_1=dropout_num_1, drop_2=dropout_num_2)
     # net = GhostNet_res.resnet18()
     # 为网络重写分类层
     # in_channel = net.fc.in_features  # 2048
