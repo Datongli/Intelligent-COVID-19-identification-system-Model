@@ -40,14 +40,13 @@ import ResNet
 # 从自定义的ResNet.py文件中导入resnet50这个函数
 # import ResNet
 
-# negative = 'cat'
-# positive = 'dog'
-negative = 'negative'
-positive = 'positive'
+negative = 'cat'
+positive = 'dog'
+# negative = 'negative'
+# positive = 'positive'
 
 # 工作目录
-work_path = r"D:\DataSet\workplace"
-# 数据集文件夹位置
+work_path = r"E:\DataBase\workplace"
 filepath = r"E:\DataBase\cat_vs_dog"
 # 权重文件位置
 # weightpath = "D:/学习/大创/data/训练数据集/data/path/resnet50.pth"
@@ -126,7 +125,6 @@ class PaddyDataSet(Dataset):
         std = [R_var, G_var, B_var]
         return mean, std
 
-
     @staticmethod
     def get_img_info(data_dir):
         data_info = list()
@@ -193,15 +191,13 @@ def init_weights(layer):
         nn.init.constant_(layer.bias, 0.1)
 
 
-
 # -------------------------------------------------- #
 # （0）参数设置
 # -------------------------------------------------- #
 
 
-
-batch_size = 32  # 每个step训练batch_size张图片
-epochs = 32  # 共训练epochs次
+batch_size = 64  # 每个step训练batch_size张图片
+epochs = 256  # 共训练epochs次
 k = 5  # k折交叉验证
 net_num = 18
 dropout_num_1 = 0.9
@@ -214,7 +210,6 @@ labels_k = []
 wd = None
 # stop_epoch: 早停的批量数
 stop_epoch = 5
-
 
 # -------------------------------------------------- #
 # （1）文件配置
@@ -272,8 +267,6 @@ data_0 = PaddyDataSet(data_dir=data_dir,
                           # transforms.Normalize(mean=image_mean, std=image_std)
                       ]))
 
-
-
 # # 先划分成 5份
 kf = KFold(n_splits=k, shuffle=True, random_state=34)
 # 初始化混淆矩阵
@@ -310,14 +303,11 @@ else:
 # 加时间戳
 nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
-
 # 写一个txt文件用于保存超参数
-file = open(photo_folder + '\\' +'ghostnet网络 ' + nowTime + ".txt", 'w',encoding='utf-8')
+file = open(photo_folder + '\\' + 'ghostnet网络 ' + nowTime + ".txt", 'w', encoding='utf-8')
 file.write("batch_size:{}\n epoch:{}\n learning_rate:{}\n".format(batch_size, epochs, learning_rate))
 file.write("weight_decay:{}\n".format(wd))
 file.write("dropout_1:{}, dropout_2:{}\n".format(dropout_num_1, dropout_num_2))
-
-
 
 """
 模型的训练
@@ -369,7 +359,6 @@ for train_val_both, test_index in kf.split(data_0):
 
     # 初始化一些空白矩阵
     train_loss = []
-    train_loss = []
     train_acc = []
     val_loss = []
     val_acc = []
@@ -393,7 +382,6 @@ for train_val_both, test_index in kf.split(data_0):
     test_loader = DataLoader(dataset=test_fold, batch_size=batch_size, shuffle=True, drop_last=True)
     # # 早停的实例
     # early_stopping = EarlyStopping(patience=4, delta=0.1, path=savepath + '/model_' + dir_path + "_第{}折验证{}层网络".format(k_num, net_num) + '.pth')
-
 
     """
     训练过程
@@ -459,14 +447,14 @@ for train_val_both, test_index in kf.split(data_0):
             # 打印每个step的损失和acc
             print(line, end='')
             print(f'共:{step_num} step:{step + 1} loss:{loss} acc:{running_acc / batch_size}')
-            file.write("第{}折, 共:{} step:{} loss:{} acc:{}\n".format(k_num, step_num, step + 1, loss, running_acc / batch_size))
-
+            file.write("第{}折, 共:{} step:{} loss:{} acc:{}\n".format(k_num, step_num, step + 1, loss,
+                                                                       running_acc / batch_size))
 
         # -------------------------------------------------- #
         # （5）网络验证
         # -------------------------------------------------- #
-        net.eval()  # 切换为验证模型，BN和Dropout不进行参数的更新作用
-        # net.train()  # 虽然是训练模式，但是因为没有写反向传播的代码，因此可以视为没有进行参数的更新
+        # net.eval()  # 切换为验证模型，BN和Dropout不进行参数的更新作用
+        net.train()  # 虽然是训练模式，但是因为没有写反向传播的代码，因此可以视为没有进行参数的更新
 
         acc = 0.0  # 验证集准确率
         val_loss_run = 0.0
@@ -486,7 +474,6 @@ for train_val_both, test_index in kf.split(data_0):
 
                 # 累加每个step的损失
                 val_loss_run += loss.item()
-
 
                 # 预测分数的最大值
                 predict_y = torch.max(outputs, dim=1)[1]
@@ -567,8 +554,8 @@ for train_val_both, test_index in kf.split(data_0):
     # 加载权重
     net.load_state_dict(torch.load(weightpath, map_location=device))
     # 模型切换成验证模式，目的是让dropout和bn切换形式
-    net.eval()
-    # net.train()
+    # net.eval()
+    net.train()
     # 将模型搬运到GPU上
     net.to(device)
     test_acc = 0.0
@@ -609,7 +596,6 @@ for train_val_both, test_index in kf.split(data_0):
         print("第{}折测试集的acc：{}".format(k_num, acc_test))
         file.write("第{}折测试集的acc：{}\n".format(k_num, acc_test))
 
-
     # 保存k折的roc参数
     pre_score_k.append(pre_score)
     labels_k.append(labels_epoch)
@@ -637,7 +623,6 @@ for train_val_both, test_index in kf.split(data_0):
     plt.ylim((0, 1))  # 限制一下绘图的幅度，更具有代表性一些
     plt.legend(["train", "val"], loc="lower right")
     plt.savefig(photo_folder + "\\model_acc_第{}折_".format(k_num) + str(nowTime) + ".jpg")
-
 
 """
 k折交叉验证的话，在前面绘制了loss和acc
@@ -718,7 +703,6 @@ for i in range(data_y_num):
     a = a / k
     data_y_plt.append(a)
 
-
 plt.plot(data_x_plt, data_y_plt, label='AVG (auc = {0:.2f})'.format(avg), c=clr_2, alpha=1, linewidth=2)
 plt.xlim([-0.05, 1.05])  # 设置x、y轴的上下限，以免和边缘重合，更好的观察图像的整体
 plt.ylim([-0.05, 1.05])
@@ -786,5 +770,3 @@ plot_confusion_matrix(cnf_matrix, classes=classes, normalize=True, title='Normal
 
 # # 第二种情况：显示数字
 # plot_confusion_matrix(cnf_matrix, classes=classes, normalize=False, title='Normalized confusion matrix')
-
-
