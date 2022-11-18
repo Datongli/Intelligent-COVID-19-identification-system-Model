@@ -40,14 +40,14 @@ import ResNet
 # 从自定义的ResNet.py文件中导入resnet50这个函数
 # import ResNet
 
-negative = 'cat'
-positive = 'dog'
-# negative = 'negative'
-# positive = 'positive'
+# negative = 'cat'
+# positive = 'dog'
+negative = 'negative'
+positive = 'positive'
 
 # 工作目录
 work_path = r"E:\DataBase\workplace"
-filepath = r"E:\DataBase\cat_vs_dog"
+filepath = r"E:\DataBase\整合1：1"
 # 权重文件位置
 # weightpath = "D:/学习/大创/data/训练数据集/data/path/resnet50.pth"
 
@@ -197,17 +197,16 @@ def init_weights(layer):
 
 
 batch_size = 64  # 每个step训练batch_size张图片
-epochs = 256  # 共训练epochs次
+epochs = 64  # 共训练epochs次
 k = 5  # k折交叉验证
 net_num = 18
-dropout_num_1 = 0.9
+dropout_num_1 = 0.2
 dropout_num_2 = 0.1
 learning_rate = 0.001
 pre_score_k = []
 labels_k = []
 # wd：正则化惩罚的参数
-# wd = 0.001
-wd = None
+wd = 0
 # stop_epoch: 早停的批量数
 stop_epoch = 5
 
@@ -278,8 +277,7 @@ step_num = int(train_num / batch_size)
 # -------------------------------------------------- #
 # （3）加载模型
 # -------------------------------------------------- #
-# 定义交叉熵损失
-loss_function = nn.CrossEntropyLoss()
+
 
 # -------------------------------------------------- #
 # （4）网络训练
@@ -302,12 +300,6 @@ else:
     os.mkdir(photo_folder)
 # 加时间戳
 nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
-
-# 写一个txt文件用于保存超参数
-file = open(photo_folder + '\\' + 'ghostnet网络 ' + nowTime + ".txt", 'w', encoding='utf-8')
-file.write("batch_size:{}\n epoch:{}\n learning_rate:{}\n".format(batch_size, epochs, learning_rate))
-file.write("weight_decay:{}\n".format(wd))
-file.write("dropout_1:{}, dropout_2:{}\n".format(dropout_num_1, dropout_num_2))
 
 """
 模型的训练
@@ -342,6 +334,8 @@ for train_val_both, test_index in kf.split(data_0):
     # net = efficientnet.efficientnet_b0(num_classes=2)
     # net = GhostNet_res.resnet18()
     # net = ResNet_attention.resnet18(num_classes=1000, include_top=True)
+    # 获取网络名称
+    net_name = net.__class__.__name__
     # 加载预训练权重
     # net.load_state_dict(torch.load(weightpath, map_location=device))
     # 为网络重写分类层
@@ -353,9 +347,20 @@ for train_val_both, test_index in kf.split(data_0):
     net.to(device)
     # 定义优化器
     # weight_decay：用于L2正则化，有助于抑制过拟合
-    optimizer = optim.Adam(net.parameters(), lr=learning_rate)
+    # optimizer = optim.Adam(net.parameters(), lr=learning_rate)
     # optimizer = optim.SGD(net.parameters(), lr=learning_rate)
-    # optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=wd)
+    # 定义交叉熵损失
+    loss_function = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=wd)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=4)
+
+    # 写一个txt文件用于保存超参数
+    file_name = r"{}\{}网络 {}.txt".format(photo_folder, net_name, nowTime)
+    file = open(file_name, 'w', encoding='utf-8')
+    if os.path.exists(file_name):
+        file.write("batch_size:{}\n epoch:{}\n learning_rate:{}\n".format(batch_size, epochs, learning_rate))
+        file.write("weight_decay:{}\n".format(wd))
+        file.write("dropout_1:{}, dropout_2:{}\n".format(dropout_num_1, dropout_num_2))
 
     # 初始化一些空白矩阵
     train_loss = []
