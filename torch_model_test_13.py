@@ -1,6 +1,7 @@
 """
 此文件用于改善交叉熵的计算，加上不平衡的权重
 同时搞清楚一下计算的过程
+更改了写入txt的程序
 """
 
 import torch, gc
@@ -181,8 +182,8 @@ class Focal_Loss():
         eps = 1e-7
         loss = []
         for i in range(len(labels)):
-            loss_1 = -1 * self.alpha * torch.pow((1 - preds[i][1]), self.gamma) * torch.log(preds[i][1] + eps) * labels[i]
-            loss_0 = -1 * (1 - self.alpha) * torch.pow(preds[i][1], self.gamma) * torch.log(1 - preds[i][1] + eps) * (1 - labels[i])
+            loss_1 = -1 * (1 - self.alpha) * torch.pow((1 - preds[i][1]), self.gamma) * torch.log(preds[i][1] + eps) * labels[i]
+            loss_0 = -1 * self.alpha * torch.pow(preds[i][1], self.gamma) * torch.log(1 - preds[i][1] + eps) * (1 - labels[i])
             loss.append(loss_0 + loss_1)
         loss = torch.as_tensor(loss)
         return torch.mean(loss)
@@ -302,14 +303,6 @@ else:
 nowTime = datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
 
 
-# 写一个txt文件用于保存超参数
-file = open(photo_folder + '\\' + net_name + '网络 ' + nowTime + ".txt", 'w',encoding='utf-8')
-file.write("batch_size:{}\n epoch:{}\n learning_rate:{}\n".format(batch_size, epochs, learning_rate))
-file.write("weight_decay:{}\n".format(wd))
-file.write("dropout_1:{}, dropout_2:{}\n".format(dropout_num_1, dropout_num_2))
-
-
-
 """
 模型的训练
 """
@@ -351,9 +344,9 @@ for train_val_both, test_index in kf.split(data_0):
     # 给模型参数进行初始化
     # net.apply(init_weights)
     # 将模型搬运到GPU上
-    print(net.__class__.__name__)
-    print(type(net.__class__.__name__))
     net.to(device)
+    # 获取网络名称
+    net_name = net.__class__.__name__
     # 定义优化器
     # weight_decay：用于L2正则化，有助于抑制过拟合
     # optimizer = optim.Adam(net.parameters(), lr=learning_rate)
@@ -363,6 +356,14 @@ for train_val_both, test_index in kf.split(data_0):
     # optimizer = optim.SGD(net.parameters(), lr=learning_rate)
     optimizer = optim.Adam(net.parameters(), lr=learning_rate, weight_decay=wd)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=4)
+
+    # 写一个txt文件用于保存超参数
+    file_name = r"{}\{}网络 {}.txt".format(photo_folder, net_name, nowTime)
+    file = open(file_name, 'w', encoding='utf-8')
+    if os.path.exists(file_name):
+        file.write("batch_size:{}\n epoch:{}\n learning_rate:{}\n".format(batch_size, epochs, learning_rate))
+        file.write("weight_decay:{}\n".format(wd))
+        file.write("dropout_1:{}, dropout_2:{}\n".format(dropout_num_1, dropout_num_2))
 
     # 初始化一些空白矩阵
     train_loss = []

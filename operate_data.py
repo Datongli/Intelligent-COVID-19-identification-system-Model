@@ -19,7 +19,7 @@ import shutil
 import datetime
 
 # 训练集和验证集的比k：1-k
-k = 0.7
+k = 0.8
 
 def copy(src_path, target_path):
     # 获取文件夹里面内容
@@ -47,11 +47,11 @@ def copy(src_path, target_path):
         print('复制完成!')
 
 
-original_dataset_dir = "D:/学习/大创/data/训练数据集/data/整合(chirplet)"
-# negative = 'cat'
-# positive = 'dog'
-negative = 'negative'
-positive = 'positive'
+original_dataset_dir = "D:/学习/大创/data/训练数据集/data/cat_vs_dog"
+negative = 'cat'
+positive = 'dog'
+# negative = 'negative'
+# positive = 'positive'
 
 base_dir = original_dataset_dir + "(new)"
 path_1 = negative
